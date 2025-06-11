@@ -10,12 +10,6 @@ from get_metadata.models import ModMetadata
 class FabricModsMetadata(GetMetadata):
     _fabric_mod_info_file = "fabric.mod.json"
 
-    def __init__(self, path_to_server: str, include_server_mods: bool, path_to_client ="") -> None:
-        self._include_server_mods = include_server_mods
-        self._path_server_folder = Path(path_to_server)
-        self._path_client_mods = Path(path_to_client)
-
-
     @property
     def mods(self) -> List[ModMetadata]:
         if self._include_server_mods:
