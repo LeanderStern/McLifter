@@ -1,7 +1,7 @@
 import json
 
-from Utils.handle_bool_input import handle_bool_input
-from Utils.handle_minecraft_version_input import handle_minecraft_version_input
+from utils.handle_bool_input import handle_bool_input
+from utils.handle_minecraft_version_input import handle_minecraft_version_input
 from get_metadata.fabric_mods_metadata.fabric_mods_metadata import FabricModsMetadata
 from mods_dependency_checker.mods_dependency_checker import ModsDependencyChecker
 
