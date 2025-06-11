@@ -1,0 +1,1 @@
+from .mod_metadata import ModMetadata
