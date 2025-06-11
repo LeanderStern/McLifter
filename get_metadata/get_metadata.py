@@ -1,20 +1,16 @@
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import List, Optional
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, Field
 
 from get_metadata.models import ModMetadata
 
 
 class GetMetadata(BaseModel, ABC):
-    path_to_server: str
+    path_to_server: Path
     include_server_mods: bool
-    path_to_client: Optional[str] = ""
-
-    @field_validator("path_to_server", "path_to_client")
-    @classmethod
-    def validate_path(cls, string):
-
+    path_to_client: Path = Field(default_factory=Path)
 
     @property
     @abstractmethod

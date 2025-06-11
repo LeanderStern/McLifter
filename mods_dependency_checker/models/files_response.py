@@ -1,14 +1,10 @@
-from dataclasses import dataclass
-from typing import Optional
-
+from base_model import MMUBaseModel
 from mods_dependency_checker.enums.file_type_enum import FileTypeEnum
 
-
-@dataclass()
-class FilesResponse:
+class FilesResponse(MMUBaseModel):
     hashes: dict[str, str]
     url: str
     filename: str
     primary: bool
     size: int
-    file_type: Optional[FileTypeEnum | None] = None
+    file_type: FileTypeEnum | None = None

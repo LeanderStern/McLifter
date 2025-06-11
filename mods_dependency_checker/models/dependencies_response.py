@@ -1,12 +1,9 @@
-from dataclasses import dataclass
-from typing import Optional
-
+from base_model import MMUBaseModel
 from mods_dependency_checker.enums.dependency_type_enum import DependencyTypeEnum
 
 
-@dataclass()
-class DependenciesResponse:
+class DependenciesResponse(MMUBaseModel):
     dependency_type: DependencyTypeEnum
-    version_id: Optional[str | None] = None
-    project_id: Optional[str | None] = None
-    file_name: Optional[str | None] = None
+    version_id: str | None = None
+    project_id: str | None = None
+    file_name: str | None = None

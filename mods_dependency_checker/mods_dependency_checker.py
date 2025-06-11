@@ -74,3 +74,4 @@ class ModsDependencyChecker:
 
     @staticmethod
     def _fetch_newest_stable_version(mod: ModMetadata) -> VersionResponse:
+        pass

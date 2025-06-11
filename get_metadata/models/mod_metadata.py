@@ -1,13 +1,10 @@
-from pydantic import BaseModel, StringConstraints, Field
+from pydantic import Field
+
+from base_model import MMUBaseModel
+from constraints import SemanticVersion
 
 
-class ModMetadata(BaseModel):
-    id: str
-    version: Field(pattern=r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$")
-    depends: dict
-
-    def __contains__(self, values) -> bool:
-        for value in values:
-            if self.id is value.id:
-                return True
-        return False
+class ModMetadata(MMUBaseModel):
+    id: str = Field(min_length=1)
+    version: SemanticVersion
+    depends: dict[str, str]
