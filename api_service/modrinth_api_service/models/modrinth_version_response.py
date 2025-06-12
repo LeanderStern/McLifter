@@ -16,15 +16,15 @@ class ModrinthVersionResponse(GetVersionResponse):
     project_id: Base62Str
     author_id: Base62Str
     date_published: datetime = Field(strict=False)
-    downloads: int = Field()
-    files: List[ModrinthFileResponse] #= Field(min_length=1)
+    downloads: int = Field(gt=0)
+    files: List[ModrinthFileResponse] = Field(min_length=1)
     name: str | None = None
     version_number: str | None = None
     changelog: str | None = None
     dependencies: List[ModrinthDependenciesResponse] | None = None
-    game_versions: List[MinecraftVersion] | None = Field(default=None, min_length=1)
-    version_type: VersionTypeEnum | None = None
+    game_versions: List[str] | None = Field(default=None, min_length=1)
+    version_type: VersionTypeEnum | None = Field(default=None, strict=False)
     loaders: List[str] | None = None
     featured: bool | None = None
-    status: StatusEnum | None = None
-    requested_status: RequestedStatusEnum | None = None
+    status: StatusEnum | None = Field(default=None, strict=False)
+    requested_status: RequestedStatusEnum | None = Field(default=None, strict=False)

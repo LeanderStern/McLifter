@@ -1,12 +1,12 @@
 import os
 
 from packaging.version import Version
-from pydantic import TypeAdapter
+from pydantic import TypeAdapter, validate_call
 
 from constraints import MinecraftVersion
 
-
-def handle_semantic_version_input(input_string) -> Version:
+@validate_call
+def handle_minecraft_version_input(input_string: str) -> Version:
     while True:
         try:
             version = input(input_string)

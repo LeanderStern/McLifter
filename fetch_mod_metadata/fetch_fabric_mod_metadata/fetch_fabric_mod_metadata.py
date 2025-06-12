@@ -1,16 +1,20 @@
+from functools import cached_property
 from pathlib import Path
-from typing import List
+from typing import List, ClassVar
 from zipfile import ZipFile
 import json
 
-from get_mod_metadata.get_mod_metadata import GetModMetadata
-from get_mod_metadata.models import ModMetadata
+from pydantic import validate_call
+
+from constraints import DirectoryPath
+from fetch_mod_metadata.fetch_mod_metadata import FetchModMetadata
+from fetch_mod_metadata.models import ModMetadata
 
 
-class FabricModsMetadata(GetModMetadata):
-    _fabric_mod_info_file = "fabric.mod.json"
+class FetchFabricModMetadata(FetchModMetadata):
+    _FABRIC_MOD_INFO_FILE: ClassVar[str] = "fabric.mod.json"
 
-    @property
+    @cached_property
     def mods(self) -> List[ModMetadata]:
         if self.include_server_mods:
             return self._get_server_mods() + self._get_client_mods()
@@ -27,22 +31,21 @@ class FabricModsMetadata(GetModMetadata):
         else:
             return self._get_all_mod_infos(self.path_to_client)
 
-
-    def _get_all_mod_infos(self, path_to_mod_folder: Path) -> List[ModMetadata]:
-        if not path_to_mod_folder.is_dir():
-            raise TypeError("provided path is not a folder")
+    @validate_call
+    def _get_all_mod_infos(self, path_to_mod_folder: DirectoryPath) -> List[ModMetadata]:
         mods = []
-
         for path in path_to_mod_folder.iterdir():
             if path.is_file() and path.suffix == ".jar":
                 with ZipFile(path, "r") as jar:
                     try:
-                        with jar.open(self._fabric_mod_info_file) as json_bytes:
+                        with jar.open(self._FABRIC_MOD_INFO_FILE) as json_bytes:
                             json_file: dict = json.load(json_bytes)
                     except KeyError:
-                        filename_in_subfolder = f"{path.stem}/{self._fabric_mod_info_file}"
+                        filename_in_subfolder = f"{path.stem}/{self._FABRIC_MOD_INFO_FILE}"
                         with jar.open(filename_in_subfolder) as json_bytes:
                             json_file: dict = json.load(json_bytes)
-                mods.append(ModMetadata(id=json_file["id"], version=json_file["version"], depends=json_file["depends"], path=path))
+                json_file["path"] = path
+                json_file["loader"] = "fabric"
+                mods.append(ModMetadata.model_validate(json_file))
 
         return mods

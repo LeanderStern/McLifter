@@ -1,25 +1,30 @@
 import re
-from typing import List
+from functools import cached_property
+from typing import List, ClassVar
 
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet, Specifier
+from pydantic import validate_call
 
-from get_mod_metadata.models import ModMetadata
+from api_service.api_service import ApiService
+from base_model import MCLBaseModel
+from fetch_mod_metadata.fetch_mod_metadata import FetchModMetadata
+from fetch_mod_metadata.models import ModMetadata
 from api_service.modrinth_api_service.models.modrinth_version_response import ModrinthVersionResponse
 
 
-class ModUpdateManager:
+class ModUpdateManager(MCLBaseModel):
 
-    _specifier_operators = Specifier._operators.keys() #ignore
+    _SPECIFIER_OPERATORS: ClassVar[set[str]] = Specifier._operators.keys() #ignore
 
-    def __init__(self, update_to_version: Version, mods: List[ModMetadata]) -> None:
-        self._mods = mods
-        self.version_to_update_to = update_to_version
+    mod_fetcher: FetchModMetadata
+    api_service: ApiService
+    version_to_update_to: Version
 
-    @property
+    @cached_property
     def incompatible_mods(self) -> List[ModMetadata]:
         mods = []
-        for mod in self._mods:
+        for mod in self.mod_fetcher.mods:
             if "minecraft" not in mod.depends:
                 mods.append(mod)
                 continue
@@ -33,17 +38,18 @@ class ModUpdateManager:
                 mods.append(mod)
         return mods
 
-    @property
+    @cached_property
     def old_mods(self) -> List[ModMetadata]:
-        compatible_mods = [mod for mod in self._mods if mod not in self.incompatible_mods]
+        compatible_mods = [mod for mod in self.mod_fetcher.mods if mod not in self.incompatible_mods]
         for mod in compatible_mods:
-            pass
+            a = self.api_service.get_all_project_versions(mod.id, mod.loader)
+            a
 
-
+    @validate_call
     def _does_mod_need_update(self, versions: List[str]) -> bool:
         for version in versions:
-            normalized_version = self._normalize_version(version)
-            if any(operator in normalized_version for operator in self._specifier_operators):
+            normalized_version = self._normalize_version_string(version)
+            if any(operator in normalized_version for operator in self._SPECIFIER_OPERATORS):
                 specifier = SpecifierSet(normalized_version)
                 if self.version_to_update_to not in specifier:
                     return True
@@ -52,7 +58,8 @@ class ModUpdateManager:
         return False
 
     @staticmethod
-    def _normalize_version(version: str) -> str:
+    @validate_call
+    def _normalize_version_string(version: str) -> str:
         def repl(match):
             major, minor = match.groups()
             return f"~={major}.{minor}"
@@ -71,7 +78,3 @@ class ModUpdateManager:
 
         normalized_version = replace_wrong_compatible
         return normalized_version
-
-    @staticmethod
-    def _fetch_newest_stable_version(mod: ModMetadata) -> ModrinthVersionResponse:
-        pass

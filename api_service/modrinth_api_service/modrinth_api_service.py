@@ -1,9 +1,12 @@
-from typing import List
+import json
+from typing import List, ClassVar, Any
 
 import requests
-from pydantic import HttpUrl, validate_call
-from pydantic.v1 import validate_arguments
+from pydantic import validate_call, AnyHttpUrl, Field, PrivateAttr
 from pydantic_core import from_json
+from requests import Response, Session
+from requests.adapters import HTTPAdapter
+from urllib3 import Retry
 
 from api_service.api_service import ApiService
 from api_service.modrinth_api_service.models.modrinth_version_response import ModrinthVersionResponse
@@ -11,18 +14,25 @@ from constraints import Base62Str
 
 
 class ModrinthApiService(ApiService):
-    URL: str = "https://api.modrinth.com/v2"
-    GET_VERSION_URL: str = URL + "/version/{version_id}"
-    GET_ALL_VERSIONS_URL: str = URL + "/projects/{project_id}/version"
+    _GET_ALL_VERSIONS_URL: ClassVar[str] = "https://api.modrinth.com/v2/project/{project_id}/version"
+    _RETRY: ClassVar[Retry] = Retry(
+        total=5,
+        status_forcelist=[500, 502, 503, 504]
+    )
+    _session: Session = PrivateAttr(requests.Session())
 
-    def get_all_versions_url(self, project_id: str) -> HttpUrl:
-        return HttpUrl(f"{self.URL}/projects/{project_id}/version")
-
-    def get_all_versions(self, project_id: Base62Str) -> List[ModrinthVersionResponse]:
-        pass
+    def model_post_init(self, __context: Any) -> None:
+        self._session.mount("https://", HTTPAdapter(max_retries=self._RETRY))
 
     @validate_call
-    def get_version(self, version_id: Base62Str) -> ModrinthVersionResponse:
-        response = requests.get(url=self.GET_VERSION_URL.format(version_id=version_id))
-        version = ModrinthVersionResponse.model_validate(from_json(response.text))
-        return version
+    def get_all_project_versions(self, project_id: str, mod_loader: str) -> List[ModrinthVersionResponse]:
+        response: Response = self._session.get(
+            url=self._GET_ALL_VERSIONS_URL.format(project_id=project_id),
+            params={"loaders": json.dumps([mod_loader])},
+        )
+        response.raise_for_status()
+
+        versions: List[ModrinthVersionResponse] = []
+        for version in response.json():
+            versions.append(ModrinthVersionResponse.model_validate(version))
+        return versions

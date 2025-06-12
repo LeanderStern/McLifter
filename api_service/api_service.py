@@ -8,9 +8,5 @@ from base_model import MCLBaseModel
 class ApiService(MCLBaseModel, ABC):
 
     @abstractmethod
-    def get_version(self, version_id) -> GetVersionResponse:
-        pass
-
-    @abstractmethod
-    def get_all_versions(self, project_id) -> List[GetVersionResponse]:
+    def get_all_project_versions(self, project_id, mod_loader) -> List[GetVersionResponse]:
         pass
