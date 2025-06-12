@@ -3,11 +3,11 @@ from typing import List
 from zipfile import ZipFile
 import json
 
-from get_metadata.get_metadata import GetMetadata
-from get_metadata.models import ModMetadata
+from get_mod_metadata.get_mod_metadata import GetModMetadata
+from get_mod_metadata.models import ModMetadata
 
 
-class FabricModsMetadata(GetMetadata):
+class FabricModsMetadata(GetModMetadata):
     _fabric_mod_info_file = "fabric.mod.json"
 
     @property
@@ -43,6 +43,6 @@ class FabricModsMetadata(GetMetadata):
                         filename_in_subfolder = f"{path.stem}/{self._fabric_mod_info_file}"
                         with jar.open(filename_in_subfolder) as json_bytes:
                             json_file: dict = json.load(json_bytes)
-                mods.append(ModMetadata(id=json_file["id"], version=json_file["version"], depends=json_file["depends"]))
+                mods.append(ModMetadata(id=json_file["id"], version=json_file["version"], depends=json_file["depends"], path=path))
 
         return mods

@@ -1,12 +1,17 @@
 import os
-import re
 
-def handle_minecraft_version_input(input_string) -> str:
-    minecraft_version_pattern = re.compile(r'^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:\.(?:0|[1-9]\d*))?$')
+from packaging.version import Version
+from pydantic import TypeAdapter
+
+from constraints import MinecraftVersion
+
+
+def handle_semantic_version_input(input_string) -> Version:
     while True:
-        version = input(input_string)
-        if minecraft_version_pattern.match(version):
-            return version
-        else:
+        try:
+            version = input(input_string)
+            verified_version = TypeAdapter(MinecraftVersion).validate_python(version)
+            return Version(verified_version)
+        except ValueError:
             os.system("cls")
             print("please enter valid minecraft version")

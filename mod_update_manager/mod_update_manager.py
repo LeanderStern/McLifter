@@ -2,22 +2,22 @@ import re
 from typing import List
 
 from packaging.version import Version
-from packaging.specifiers import SpecifierSet, InvalidSpecifier, Specifier
+from packaging.specifiers import SpecifierSet, Specifier
 
-from get_metadata.models import ModMetadata
-from mods_dependency_checker.models.version_response import VersionResponse
+from get_mod_metadata.models import ModMetadata
+from api_service.modrinth_api_service.models.modrinth_version_response import ModrinthVersionResponse
 
 
-class ModsDependencyChecker:
+class ModUpdateManager:
 
-    _specifier_operators = ('~=', '==', '!=', '<=', '>=', '<', '>', '===', "*")
+    _specifier_operators = Specifier._operators.keys() #ignore
 
-    def __init__(self, update_to_version: str, mods: List[ModMetadata]) -> None:
+    def __init__(self, update_to_version: Version, mods: List[ModMetadata]) -> None:
         self._mods = mods
-        self.version_to_update_to = Version(update_to_version)
+        self.version_to_update_to = update_to_version
 
     @property
-    def old_mods(self) -> List[ModMetadata]:
+    def incompatible_mods(self) -> List[ModMetadata]:
         mods = []
         for mod in self._mods:
             if "minecraft" not in mod.depends:
@@ -34,8 +34,8 @@ class ModsDependencyChecker:
         return mods
 
     @property
-    def outdated_mods(self) -> List[ModMetadata]:
-        compatible_mods = [mod for mod in self._mods if mod not in self.old_mods]
+    def old_mods(self) -> List[ModMetadata]:
+        compatible_mods = [mod for mod in self._mods if mod not in self.incompatible_mods]
         for mod in compatible_mods:
             pass
 
@@ -73,5 +73,5 @@ class ModsDependencyChecker:
         return normalized_version
 
     @staticmethod
-    def _fetch_newest_stable_version(mod: ModMetadata) -> VersionResponse:
+    def _fetch_newest_stable_version(mod: ModMetadata) -> ModrinthVersionResponse:
         pass
