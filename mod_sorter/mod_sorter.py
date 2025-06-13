@@ -13,12 +13,11 @@ from fetch_mod_metadata.models import ModMetadata
 from api_service.modrinth_api_service.models.modrinth_version_response import ModrinthVersionResponse
 
 
-class ModUpdateManager(MCLBaseModel):
+class ModSorter(MCLBaseModel):
 
     _SPECIFIER_OPERATORS: ClassVar[set[str]] = Specifier._operators.keys() #ignore
 
     mod_fetcher: FetchModMetadata
-    api_service: ApiService
     version_to_update_to: Version
 
     @cached_property
@@ -40,10 +39,7 @@ class ModUpdateManager(MCLBaseModel):
 
     @cached_property
     def old_mods(self) -> List[ModMetadata]:
-        compatible_mods = [mod for mod in self.mod_fetcher.mods if mod not in self.incompatible_mods]
-        for mod in compatible_mods:
-            a = self.api_service.get_all_project_versions(mod.id, mod.loader)
-            a
+        return [mod for mod in self.mod_fetcher.mods if mod not in self.incompatible_mods]
 
     @validate_call
     def _does_mod_need_update(self, versions: List[str]) -> bool:

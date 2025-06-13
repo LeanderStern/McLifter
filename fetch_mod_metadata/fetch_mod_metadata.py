@@ -11,7 +11,7 @@ from fetch_mod_metadata.models import ModMetadata
 
 
 class FetchModMetadata(MCLBaseModel, ABC):
-    path_to_server: DirectoryPath = Field(strict=False)
+    path_to_server: DirectoryPath = Field(strict=False, default_factory=DirectoryPath)
     include_server_mods: bool
     path_to_client: DirectoryPath = Field(strict=False, default_factory=Path)
 

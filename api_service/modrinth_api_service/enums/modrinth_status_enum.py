@@ -1,6 +1,6 @@
 from enum import Enum
 
-class StatusEnum(Enum):
+class ModrinthStatusEnum(Enum):
     LISTED = "listed"
     ARCHIVED = "archived"
     DRAFT = "draft"

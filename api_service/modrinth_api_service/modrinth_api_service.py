@@ -10,7 +10,7 @@ from urllib3 import Retry
 
 from api_service.api_service import ApiService
 from api_service.modrinth_api_service.models.modrinth_version_response import ModrinthVersionResponse
-from constraints import Base62Str
+from constraints import Base62Str, MinecraftVersion
 
 
 class ModrinthApiService(ApiService):
@@ -25,10 +25,10 @@ class ModrinthApiService(ApiService):
         self._session.mount("https://", HTTPAdapter(max_retries=self._RETRY))
 
     @validate_call
-    def get_all_project_versions(self, project_id: str, mod_loader: str) -> List[ModrinthVersionResponse]:
+    def get_all_project_versions(self, project_id: str, mod_loader: str, minecraft_version: MinecraftVersion) -> List[ModrinthVersionResponse]:
         response: Response = self._session.get(
             url=self._GET_ALL_VERSIONS_URL.format(project_id=project_id),
-            params={"loaders": json.dumps([mod_loader])},
+            params={"loaders": json.dumps([mod_loader]), "game_versions": json.dumps([minecraft_version])},
         )
         response.raise_for_status()
 

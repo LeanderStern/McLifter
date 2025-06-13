@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Annotated
 from pydantic import Field, field_validator, AnyHttpUrl, NewPath
 from base_model import MCLBaseModel
-from api_service.modrinth_api_service.enums.file_type_enum import FileTypeEnum
+from api_service.modrinth_api_service.enums.modrinth_file_type_enum import ModrinthFileTypeEnum
 from constraints import FilePath
 
 
@@ -12,7 +12,7 @@ class ModrinthFileResponse(MCLBaseModel):
     filename: NewPath = Field(strict=False)
     primary: bool
     size: int = Field(gt=0)
-    file_type: FileTypeEnum | None = None
+    file_type: ModrinthFileTypeEnum | None = None
 
     @field_validator("filename")
     @classmethod
