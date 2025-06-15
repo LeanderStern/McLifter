@@ -1,7 +1,8 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class DependencyTypeEnum(Enum):
+class DependencyTypeEnum(StrEnum):
     REQUIRED = "required"
     OPTIONAL = "optional"
     INCOMPATIBLE = "incompatible"
+    EMBEDDED = "embedded"

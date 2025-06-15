@@ -10,6 +10,16 @@ from constraints import SemanticVersion
 
 class VersionResponse(MCLBaseModel):
     id: Any
+    project_id: Any
     dependencies: List[DependenciesResponse] | None = None
     version_number: SemanticVersion | None = None
     version_type: VersionTypeEnum | None = Field(default=None, strict=False)
+
+    def __eq__(self, other: object) -> bool:
+        match other:
+            case str():
+                return self.id == other
+            case VersionResponse():
+                return self.id == other.id
+            case _:
+                raise TypeError("Can only compare DownloadTask with DownloadTask")

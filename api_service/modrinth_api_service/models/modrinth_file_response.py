@@ -17,7 +17,6 @@ class ModrinthFileResponse(MCLBaseModel):
     @field_validator("filename")
     @classmethod
     def validate_jar(cls, value: NewPath) -> NewPath:
-        print(f"Validating filename: {value}")
         if value.suffix != ".jar":
             raise ValueError("filename must end with .jar")
         return value

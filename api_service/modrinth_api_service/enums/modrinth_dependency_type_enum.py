@@ -1,6 +1,7 @@
-from enum import Enum
+from enum import Enum, StrEnum
 
-class ModrinthDependencyTypeEnum(Enum):
+
+class ModrinthDependencyTypeEnum(StrEnum):
     REQUIRED = "required"
     OPTIONAL = "optional"
     INCOMPATIBLE = "incompatible"

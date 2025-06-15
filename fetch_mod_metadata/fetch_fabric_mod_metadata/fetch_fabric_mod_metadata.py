@@ -13,18 +13,17 @@ from fetch_mod_metadata.models import ModMetadata
 
 class FetchFabricModMetadata(FetchModMetadata):
     _FABRIC_MOD_INFO_FILE: ClassVar[str] = "fabric.mod.json"
+    MOD_LOADER: ClassVar[str] = "fabric"
 
     @cached_property
-    def mods(self) -> List[ModMetadata]:
+    def server_mods(self) -> List[ModMetadata] | None:
         if self.include_server_mods:
-            return self._get_server_mods() + self._get_client_mods()
+            return self._get_all_mod_infos(self.path_to_server / "mods")
         else:
-            return self._get_client_mods()
+            return None
 
-    def _get_server_mods(self) -> List[ModMetadata]:
-        return self._get_all_mod_infos(self.path_to_server / "mods")
-
-    def _get_client_mods(self) -> List[ModMetadata]:
+    @cached_property
+    def client_mods(self) -> List[ModMetadata]:
         default_path_object = Path()
         if self.path_to_client == default_path_object:
             return self._get_all_mod_infos(default_path_object.home() / "AppData" / "Roaming" / ".minecraft" / "mods")
@@ -45,7 +44,6 @@ class FetchFabricModMetadata(FetchModMetadata):
                         with jar.open(filename_in_subfolder) as json_bytes:
                             json_file: dict = json.load(json_bytes)
                 json_file["path"] = path
-                json_file["loader"] = "fabric"
                 mods.append(ModMetadata.model_validate(json_file))
 
         return mods

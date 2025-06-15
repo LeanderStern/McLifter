@@ -1,6 +1,7 @@
-from enum import Enum
+from enum import Enum, StrEnum
 
-class ModrinthStatusEnum(Enum):
+
+class ModrinthStatusEnum(StrEnum):
     LISTED = "listed"
     ARCHIVED = "archived"
     DRAFT = "draft"

@@ -8,8 +8,7 @@ from constraints import SemanticVersion, FilePath
 
 
 class ModMetadata(MCLBaseModel):
-    id: str = Field(min_length=1)
+    project_slug: str = Field(min_length=1, alias="id")
     version: str = Field(min_length=1)
     depends: dict[str, str | List[str]]
     path: FilePath
-    loader: str = Field(min_length=1)

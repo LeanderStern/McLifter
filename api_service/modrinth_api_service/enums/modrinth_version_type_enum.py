@@ -1,6 +1,6 @@
-from enum import Enum
+from enum import StrEnum
 
-class ModrinthVersionTypeEnum(Enum):
+class ModrinthVersionTypeEnum(StrEnum):
     RELEASE = "release"
     BETA = "beta"
     ALPHA = "alpha"
