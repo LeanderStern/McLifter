@@ -47,15 +47,15 @@ class ModrinthApiService(ApiService):
                 params=params,
             )
         while response.status_code == 404:
-            new_project_slug = input("Mod creator provided an invalid id. Please input the correct project id or leave empty to skip this mod:")
-            if len(project_slug) == 0:
+            new_project_slug = input(f'Mod creator provided an invalid id "{project_slug}". Please input the correct project id or leave empty to skip this mod:')
+            if len(new_project_slug) == 0:
                 return []
             response = self._session.get(
                 url=self._GET_ALL_VERSIONS_URL.format(project_id=new_project_slug),
                 params=params,
             )
             if response.status_code == 404:
-                print(f"Invalid project id: {project_slug}. Please try again.")
+                print(f"Invalid project id: {new_project_slug}. Please try again.")
 
         versions: List[VersionResponse] = []
         for version in response.json():

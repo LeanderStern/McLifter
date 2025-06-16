@@ -22,5 +22,12 @@ class DownloadTask(MCLBaseModel):
                     if self.dependency_versions and other in self.dependency_versions:
                         return True
                 return False
+            case str():
+                if self.version and self.version.id == other:
+                    return True
+                else:
+                    if self.dependency_versions and other in self.dependency_versions:
+                        return True
+                return False
             case _:
                 raise TypeError("Can only compare DownloadTask with DownloadTask")
