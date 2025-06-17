@@ -1,11 +1,10 @@
 from pathlib import Path
-from typing import Any, List
+from typing import List
 
 from pydantic import Field
 
 from api_service.models.version_response import VersionResponse
 from base_model import MCLBaseModel
-from fetch_mod_metadata.models import ModMetadata
 
 
 class DownloadTask(MCLBaseModel):

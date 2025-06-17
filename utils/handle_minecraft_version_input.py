@@ -3,7 +3,6 @@ import os
 from pydantic import validate_call
 from semantic_version import Version, validate
 
-from constraints import MinecraftVersion
 
 @validate_call
 def handle_minecraft_version_input(input_string: str) -> Version:

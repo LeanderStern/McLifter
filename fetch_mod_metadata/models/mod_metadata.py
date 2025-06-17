@@ -1,10 +1,9 @@
-from pathlib import Path
 from typing import List
 
 from pydantic import Field
 
 from base_model import MCLBaseModel
-from constraints import SemanticVersion, FilePath
+from constraints import FilePath
 
 
 class ModMetadata(MCLBaseModel):

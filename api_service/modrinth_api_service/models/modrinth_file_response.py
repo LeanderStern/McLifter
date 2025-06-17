@@ -1,9 +1,7 @@
-from pathlib import Path
-from typing import Annotated
 from pydantic import Field, field_validator, AnyHttpUrl, NewPath
-from base_model import MCLBaseModel
+
 from api_service.modrinth_api_service.enums.modrinth_file_type_enum import ModrinthFileTypeEnum
-from constraints import FilePath
+from base_model import MCLBaseModel
 
 
 class ModrinthFileResponse(MCLBaseModel):
