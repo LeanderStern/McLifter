@@ -14,7 +14,7 @@ from exceptions import DependencyException
 
 
 #Todo remove Debug prints
-class ModDependencyManager(MCLBaseModel):
+class ModDependencyResolver(MCLBaseModel):
     task_builder: DownloadTaskBuilder
     api_service: ApiService
     current_list_to_resolve: List[DownloadTask] | None = None
@@ -44,8 +44,10 @@ class ModDependencyManager(MCLBaseModel):
         resolved_old_tasks = self._resolve_task_dependencies(old_mods)
         if resolved_old_tasks:
             task_list.extend(resolved_old_tasks)
-        else:
+        elif len(old_mods) > 0:
             print("Unable to resolve dependencies for old mods")
+        else:
+            print("No old mods")
 
         return task_list
 
@@ -57,7 +59,7 @@ class ModDependencyManager(MCLBaseModel):
         for task in copied_list:
             if task.version and task.version.dependencies:
                 print("resolving dependencies for", task.location_outdated_mod)
-                if self._resolve_dependencies(task.version, task):
+                if not self._resolve_dependencies(task.version, task):
                     return None
         self.current_list_to_resolve = None
         return copied_list
@@ -78,7 +80,7 @@ class ModDependencyManager(MCLBaseModel):
                     continue
                 version = self.api_service.get_version(dependency.version_id)
             elif dependency.project_id:
-                version = self.api_service.get_project_version(dependency.project_id, self.task_builder.mod_fetcher.MOD_LOADER, self.task_builder.version_to_update_to)
+                version = self.api_service.get_project_version(dependency.project_id)
                 if not version:
                     return False
             else:

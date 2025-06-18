@@ -17,27 +17,27 @@ class DownloadTaskBuilder(MCLBaseModel):
     version_to_update_to: Version
 
     @cached_property
-    def incompatible_server_tasks(self) -> List[ModMetadata] | None:
+    def incompatible_server_tasks(self) -> List[DownloadTask] | None:
         if not self.mod_fetcher.server_mods:
             return None
-        return self._get_tasks(self.mod_fetcher.server_mods)
+        return self._build_tasks(self.mod_fetcher.server_mods)
 
     @cached_property
-    def old_server_tasks(self) -> List[ModMetadata] | None:
+    def old_server_tasks(self) -> List[DownloadTask] | None:
         if self.incompatible_server_tasks:
             return None
         mods = [mod for mod in self.mod_fetcher.server_mods if mod not in self.incompatible_server_tasks]
-        return self._get_tasks(mods)
+        return self._build_tasks(mods)
 
 
     @cached_property
-    def incompatible_client_tasks(self) -> List[ModMetadata]:
-        return self._get_tasks(self.mod_fetcher.client_mods)
+    def incompatible_client_tasks(self) -> List[DownloadTask]:
+        return self._build_tasks(self.mod_fetcher.client_mods)
 
     @cached_property
-    def old_client_tasks(self) -> List[ModMetadata]:
+    def old_client_tasks(self) -> List[DownloadTask]:
         mods = [mod for mod in self.mod_fetcher.client_mods if mod not in self.incompatible_client_tasks]
-        return self._get_tasks(mods)
+        return self._build_tasks(mods)
 
     @validate_call
     def _is_mod_incompatible(self, mod: ModMetadata) -> bool:
@@ -50,10 +50,10 @@ class DownloadTaskBuilder(MCLBaseModel):
         return True
 
     @validate_call
-    def _get_tasks(self, mods: List[ModMetadata]) -> List[DownloadTask]:
+    def _build_tasks(self, mods: List[ModMetadata]) -> List[DownloadTask]:
         tasks = []
         for mod in mods:
             if self._is_mod_incompatible(mod):
-                version = self.api_service.get_project_version(mod.project_slug, self.mod_fetcher.MOD_LOADER, self.version_to_update_to)
+                version = self.api_service.get_project_version(mod.project_slug)
                 tasks.append(DownloadTask(version=version, location_outdated_mod=mod.path))
         return tasks

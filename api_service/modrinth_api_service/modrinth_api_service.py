@@ -33,7 +33,7 @@ class ModrinthApiService(ApiService):
 
     @validate_call
     def get_project_version(self, project_slug: str) -> VersionResponse | None:
-        params = {"loaders": json.dumps([mod_loader]), "game_versions": json.dumps([minecraft_version])}
+        params = {"loaders": json.dumps([self.mod_loader]), "game_versions": json.dumps([self.minecraft_version])}
         response: Response = self._session.get(
             url=self._GET_ALL_VERSIONS_URL.format(project_id=project_slug),
             params=params,
@@ -64,7 +64,7 @@ class ModrinthApiService(ApiService):
         for version in response.json():
             modrinth_version = ModrinthVersionResponse(**version)
             versions.append(VersionResponse(**modrinth_version.model_dump()))
-        if versions:
+        if not versions:
             return None
         return self._select_most_stable_version(versions)
 

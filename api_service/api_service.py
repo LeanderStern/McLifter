@@ -14,7 +14,7 @@ class ApiService(MCLBaseModel, ABC):
 
     @abstractmethod
     @validate_call
-    def get_project_version(self, project_slug, mod_loader, minecraft_version: SemanticVersion) -> VersionResponse | None:
+    def get_project_version(self, project_slug) -> VersionResponse | None:
         pass
 
     @abstractmethod

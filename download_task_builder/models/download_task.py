@@ -5,11 +5,13 @@ from pydantic import Field
 
 from api_service.models.version_response import VersionResponse
 from base_model import MCLBaseModel
+from constraints import FilePath
+from fetch_mod_metadata.models import ModMetadata
 
 
 class DownloadTask(MCLBaseModel):
     version: VersionResponse | None = None
-    location_outdated_mod: Path
+    location_outdated_mod: FilePath
     dependency_versions: List[VersionResponse] = Field(default_factory=list)
 
     def __eq__(self, other: object) -> bool:
@@ -28,5 +30,7 @@ class DownloadTask(MCLBaseModel):
                     if self.dependency_versions and other in self.dependency_versions:
                         return True
                 return False
+            case ModMetadata():
+                return other.path == self.location_outdated_mod
             case _:
-                raise TypeError("Can only compare DownloadTask with DownloadTask")
+                raise NotImplemented()
