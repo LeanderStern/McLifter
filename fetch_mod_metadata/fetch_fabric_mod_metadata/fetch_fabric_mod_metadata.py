@@ -1,8 +1,7 @@
+import json
 from functools import cached_property
-from pathlib import Path
 from typing import List, ClassVar
 from zipfile import ZipFile
-import json
 
 from pydantic import validate_call
 
@@ -24,11 +23,7 @@ class FetchFabricModMetadata(FetchModMetadata):
 
     @cached_property
     def client_mods(self) -> List[ModMetadata]:
-        default_path_object = Path()
-        if self.path_to_client == default_path_object:
-            return self._get_all_mod_infos(default_path_object.home() / "AppData" / "Roaming" / ".minecraft" / "mods")
-        else:
-            return self._get_all_mod_infos(self.path_to_client)
+        return self._get_all_mod_infos(self.path_to_client)
 
     @validate_call
     def _get_all_mod_infos(self, path_to_mod_folder: DirectoryPath) -> List[ModMetadata]:

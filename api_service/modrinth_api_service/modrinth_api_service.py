@@ -1,8 +1,9 @@
 import json
+from pathlib import Path
 from typing import List, ClassVar, Any
 
 import requests
-from pydantic import validate_call, PrivateAttr
+from pydantic import validate_call, PrivateAttr, AnyHttpUrl
 from requests import Response, Session
 from requests.adapters import HTTPAdapter
 from semantic_version import Version
@@ -12,7 +13,7 @@ from wordsegment import segment, load
 from api_service.api_service import ApiService
 from api_service.models.version_response import VersionResponse
 from api_service.modrinth_api_service.models.modrinth_version_response import ModrinthVersionResponse
-from constraints import Base62Str, SemanticVersion, NotEmptyList
+from constraints import Base62Str, NotEmptyList, DirectoryPath
 
 
 class ModrinthApiService(ApiService):
@@ -23,10 +24,7 @@ class ModrinthApiService(ApiService):
         total=5,
         status_forcelist=[500, 502, 503, 504]
     )
-    _session: Session = PrivateAttr(requests.Session())
-
-    mod_loader: str
-    minecraft_version: SemanticVersion
+    _session: Session = requests.Session()
 
     def model_post_init(self, __context: Any) -> None:
         self._session.mount("https://", HTTPAdapter(max_retries=self._RETRY))
@@ -69,16 +67,25 @@ class ModrinthApiService(ApiService):
         return self._select_most_stable_version(versions)
 
     @validate_call
-    def _select_most_stable_version(self, versions: NotEmptyList[VersionResponse]) -> VersionResponse:
-        sorted_versions = sorted(versions, key=self._version_sorting_key)
-        return sorted_versions[0]
-
-    @validate_call
     def get_version(self, version_id: Base62Str) -> VersionResponse:
         response = self._session.get(url=self._GET_VERSION_URL.format(version_id=version_id))
         response.raise_for_status()
         modrinth_version = ModrinthVersionResponse(**response.json())
         return VersionResponse(**modrinth_version.model_dump())
+
+    @validate_call
+    def download_version(self, path_to_dir: DirectoryPath, download_link: AnyHttpUrl) -> None:
+        response = self._session.get(download_link.unicode_string(), stream=True)
+        response.raise_for_status()
+        file_path = path_to_dir / Path(download_link.path).name
+        with open(file_path, "wb") as file:
+            for chunk in response.iter_content(chunk_size=8192):
+                file.write(chunk)
+
+    @validate_call
+    def _select_most_stable_version(self, versions: NotEmptyList[VersionResponse]) -> VersionResponse:
+        sorted_versions = sorted(versions, key=self._version_sorting_key)
+        return sorted_versions[0]
 
     @staticmethod
     def _version_sorting_key(v: VersionResponse) -> tuple[int, Version | None]:

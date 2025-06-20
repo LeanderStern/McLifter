@@ -11,3 +11,4 @@ SemanticVersion = Annotated[str, StringConstraints(pattern=r"^(?P<major>0|[1-9]\
 FilePath = Annotated[Path, PathType('file')]
 DirectoryPath = Annotated[Path, PathType('dir')]
 NotEmptyList = Annotated[List[T], Field(min_length=1)]
+JarFile = Annotated[str, StringConstraints(pattern=r"^.*\.jar$")]

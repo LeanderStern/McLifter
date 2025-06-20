@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import List
 
 from pydantic import Field
@@ -13,6 +12,7 @@ class DownloadTask(MCLBaseModel):
     version: VersionResponse | None = None
     location_outdated_mod: FilePath
     dependency_versions: List[VersionResponse] = Field(default_factory=list)
+    name: str
 
     def __eq__(self, other: object) -> bool:
         match other:
