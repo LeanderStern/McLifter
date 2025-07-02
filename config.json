@@ -1,4 +1,4 @@
 {
-  "absolute_server_path" : "C:\\Users\\redna\\Desktop\\Minecraft Fabric Server",
-  "absolute_minecraft_mod_folder_path" : ""
+  "absolute_server_mod_folder_path" : "C:\\Users\\redna\\Desktop\\Minecraft Fabric Server\\mods",
+  "absolute_client_mod_folder_path" : ""
 }

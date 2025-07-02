@@ -16,6 +16,7 @@ class VersionResponse(MCLBaseModel):
     version_number: SemanticVersion | None = None
     version_type: VersionTypeEnum | None = Field(default=None, strict=False)
     file: FileResponse
+    name: str | None = None
 
     def __eq__(self, other: object) -> bool:
         match other:

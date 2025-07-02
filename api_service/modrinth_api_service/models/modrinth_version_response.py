@@ -3,7 +3,6 @@ from typing import List
 
 from pydantic import Field, field_validator, TypeAdapter, field_serializer
 
-from api_service.models.file_response import FileResponse
 from api_service.modrinth_api_service.enums.modrinth_requested_status_enum import ModrinthRequestedStatusEnum
 from api_service.modrinth_api_service.enums.modrinth_status_enum import ModrinthStatusEnum
 from api_service.modrinth_api_service.enums.modrinth_version_type_enum import ModrinthVersionTypeEnum

@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Any
 
 from pydantic import validate_call, AnyHttpUrl
 
@@ -9,12 +8,10 @@ from constraints import SemanticVersion, DirectoryPath
 
 
 class ApiService(MCLBaseModel, ABC):
-    mod_loader: Any
-    minecraft_version: SemanticVersion
 
     @abstractmethod
     @validate_call
-    def get_project_version(self, project_slug) -> VersionResponse | None:
+    def get_project_version(self, project_slug, minecraft_version: SemanticVersion | None) -> VersionResponse | None:
         pass
 
     @abstractmethod
@@ -24,5 +21,8 @@ class ApiService(MCLBaseModel, ABC):
 
     @abstractmethod
     @validate_call
-    def download_version(self, path_to_dir: DirectoryPath, download_link: AnyHttpUrl) -> None:
+    def download_version(self, path_to_dir: DirectoryPath,
+                         download_link: AnyHttpUrl,
+                         hash_value: str | None = None,
+                         hash_algorithm: str | None = None) -> None:
         pass

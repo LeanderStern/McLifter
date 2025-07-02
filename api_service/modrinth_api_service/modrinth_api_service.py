@@ -1,22 +1,24 @@
+import hashlib
 import json
 from pathlib import Path
 from typing import List, ClassVar, Any
 
 import requests
-from pydantic import validate_call, PrivateAttr, AnyHttpUrl
+from pydantic import validate_call, AnyHttpUrl
 from requests import Response, Session
 from requests.adapters import HTTPAdapter
 from semantic_version import Version
 from urllib3 import Retry
-from wordsegment import segment, load
 
 from api_service.api_service import ApiService
 from api_service.models.version_response import VersionResponse
 from api_service.modrinth_api_service.models.modrinth_version_response import ModrinthVersionResponse
-from constraints import Base62Str, NotEmptyList, DirectoryPath
+from constraints import Base62Str, NotEmptyList, DirectoryPath, SemanticVersion
 
 
 class ModrinthApiService(ApiService):
+    mod_loader: str
+
     _HOST_URL: ClassVar[str] = "https://api.modrinth.com/v2"
     _GET_ALL_VERSIONS_URL: ClassVar[str] = _HOST_URL + "/project/{project_id}/version"
     _GET_VERSION_URL: ClassVar[str] = _HOST_URL + "/version/{version_id}"
@@ -30,23 +32,14 @@ class ModrinthApiService(ApiService):
         self._session.mount("https://", HTTPAdapter(max_retries=self._RETRY))
 
     @validate_call
-    def get_project_version(self, project_slug: str) -> VersionResponse | None:
-        params = {"loaders": json.dumps([self.mod_loader]), "game_versions": json.dumps([self.minecraft_version])}
+    def get_project_version(self, project_slug: str, minecraft_version: SemanticVersion | None = None) -> VersionResponse | None:
+        params = {"loaders": json.dumps([self.mod_loader])}
+        if minecraft_version:
+            params["game_versions"] = json.dumps([minecraft_version])
         response: Response = self._session.get(
             url=self._GET_ALL_VERSIONS_URL.format(project_id=project_slug),
             params=params,
         )
-        if response.status_code == 404:
-            try:
-                segments = segment(project_slug)
-            except ValueError:
-                load()
-                segments = segment(project_slug)
-            segmented_project_slug = "-".join(segments)
-            response = self._session.get(
-                url=self._GET_ALL_VERSIONS_URL.format(project_id=segmented_project_slug),
-                params=params,
-            )
         while response.status_code == 404:
             new_project_slug = input(f'Mod creator provided an invalid id "{project_slug}". Please input the correct project id or leave empty to skip this mod:')
             if len(new_project_slug) == 0:
@@ -74,13 +67,27 @@ class ModrinthApiService(ApiService):
         return VersionResponse(**modrinth_version.model_dump())
 
     @validate_call
-    def download_version(self, path_to_dir: DirectoryPath, download_link: AnyHttpUrl) -> None:
+    def download_version(self, path_to_dir: DirectoryPath,
+                         download_link: AnyHttpUrl,
+                         hash_value: str | None = None,
+                         hash_algorithm: str | None = None) -> None:
+
+        hasher = None
         response = self._session.get(download_link.unicode_string(), stream=True)
+
         response.raise_for_status()
+
+        if hash_value and hash_algorithm:
+            hasher = hashlib.new(hash_algorithm)
+
         file_path = path_to_dir / Path(download_link.path).name
         with open(file_path, "wb") as file:
             for chunk in response.iter_content(chunk_size=8192):
                 file.write(chunk)
+                if hasher:
+                    hasher.update(chunk)
+        if hasher and hasher.hexdigest() != hash_value:
+            raise ValueError(f"Hash mismatch for {file_path}")
 
     @validate_call
     def _select_most_stable_version(self, versions: NotEmptyList[VersionResponse]) -> VersionResponse:

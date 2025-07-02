@@ -5,6 +5,7 @@ from constraints import JarFile
 
 
 class FileResponse(MCLBaseModel):
-    hashes: dict[str, str] = Field(description="The key is the hashing algorithm and the value is the string version of the hash.")
+    hash_algorithm: str | None = None
+    hash: str | None = None
     url: AnyHttpUrl = Field(strict=False)
     filename: JarFile = Field(strict=False)

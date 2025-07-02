@@ -10,3 +10,4 @@ class DependenciesResponse(MCLBaseModel):
     dependency_type: DependencyTypeEnum = Field(strict=False)
     version_id: Any | None = None
     project_id: Any| None = None
+    file_name: str | None = None

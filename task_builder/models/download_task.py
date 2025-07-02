@@ -5,14 +5,15 @@ from pydantic import Field
 from api_service.models.version_response import VersionResponse
 from base_model import MCLBaseModel
 from constraints import FilePath
-from fetch_mod_metadata.models import ModMetadata
+from file_manager.models import ModMetadata
 
 
 class DownloadTask(MCLBaseModel):
     version: VersionResponse | None = None
     location_outdated_mod: FilePath
-    dependency_versions: List[VersionResponse] = Field(default_factory=list)
+    dependency_versions: List[VersionResponse] = Field(default_factory=list) # The versions inside the list should all be unique to the respective folder environment
     name: str
+    needs_force_update: bool = False
 
     def __eq__(self, other: object) -> bool:
         match other:
