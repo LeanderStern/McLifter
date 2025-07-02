@@ -1,7 +1,3 @@
-# McLifter
-
-A Python-based Minecraft mod management tool that automates the process of updating mods to newer Minecraft versions using the Modrinth API.
-
 ## Overview
 
 McLifter is designed to help Minecraft server administrators and players manage their mod collections by automatically updating mods to compatible versions. It currently only focuses on Fabric mods and integrates with the Modrinth mod repository.
