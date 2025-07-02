@@ -8,6 +8,7 @@ McLifter is designed to help Minecraft server administrators and players manage 
 
 ## Features
 
+- **Easy Setup**: No API key required just install the packages and run `main.py`
 - **Automatic Mod Updates**: Automatically finds and downloads compatible mod versions for new Minecraft releases
 - **Fabric Mod Support**: Specialized handling of Fabric mods with `fabric.mod.json` metadata
 - **Backup System**: Creates backups of your existing mods before making changes
@@ -47,7 +48,7 @@ conda env create -f environment.yml
 - **Pydantic Models**: Strong typing with validation for all data structures
 - **Custom Constraints**: Specialized types for Base62 strings, semantic versions, file paths, and JAR files
 
-## Usage
+## Workflow
 
 1. Scanning your existing mod folders (client and/or server)
 2. Reading mod metadata from `fabric.mod.json` files
