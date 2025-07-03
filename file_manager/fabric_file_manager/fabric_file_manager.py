@@ -29,8 +29,10 @@ class FabricFileManager(FileManager):
     path_client_mods: DirectoryPath = Field(strict=False, default=Path().home() / "AppData" / "Roaming" / ".minecraft" / "mods")
 
     def model_post_init(self, __context: Any) -> None:
+        self.logger.debug(f"backing up mods from {self.path_client_mods} to {self._BACKUP_PATH_CLIENT_MODS}\n")
         self._copy_folder(self.path_client_mods, self._BACKUP_PATH_CLIENT_MODS)
         if self.include_server_mods and self.path_server_mods is not None:
+            self.logger.debug(f"backing up server mods from {self.path_server_mods} to {self._BACKUP_PATH_SERVER_MODS}\n")
             self._copy_folder(self.path_server_mods, self._BACKUP_PATH_SERVER_MODS)
 
     @cached_property
