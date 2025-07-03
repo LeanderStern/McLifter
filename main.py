@@ -12,13 +12,19 @@ from utils.handle_bool_input import handle_bool_input
 from utils.handle_minecraft_version_input import handle_minecraft_version_input
 
 def main() -> None:
-    with open("config.json", "r") as file:
-        config = json.load(file)
     update_server: bool = handle_bool_input("update server mods too?")
     version_to_update_to = handle_minecraft_version_input("to which version should the mods be updated?")
 
-    file_manager = FabricFileManager(include_server_mods=update_server,
-                                     path_server_mods=config["absolute_server_mod_folder_path"])
+    with open("config.json", "r") as file:
+        config = json.load(file)
+    server_path = config["absolute_server_mod_folder_path"] if len(config["absolute_server_mod_folder_path"]) > 0 else None
+    if len(config["absolute_client_mod_folder_path"]) > 0:
+        file_manager = FabricFileManager(include_server_mods=update_server,
+                                         path_client_mods=config["absolute_client_mod_folder_path"],
+                                         path_server_mods=server_path)
+    else:
+        file_manager = FabricFileManager(include_server_mods=update_server,
+                                         path_server_mods=server_path)
 
     api_service = ModrinthApiService(mod_loader=file_manager.MOD_LOADER)
 
