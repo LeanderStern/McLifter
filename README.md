@@ -4,7 +4,7 @@ McLifter is designed to help Minecraft server administrators and players manage 
 
 ## Features
 
-- **Easy Setup**: No API key required just install the packages and run `main.py` or download the exe
+- **Easy Setup**: No API key required just install the packages and run `main.py` or download the executable
 - **Automatic Mod Updates**: Automatically finds and downloads compatible mod versions for new Minecraft releases
 - **Fabric Mod Support**: Specialized handling of Fabric mods with `fabric.mod.json` metadata
 - **Backup System**: Creates backups of your existing mods before making changes
