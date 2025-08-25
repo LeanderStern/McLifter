@@ -10,20 +10,10 @@ class TaskBuilder(MCLBaseModel, ABC):
 
     @cached_property
     @abstractmethod
-    def incompatible_server_tasks(self) -> List[DownloadTask] | None:
+    def server_tasks(self) -> List[DownloadTask] | None:
         pass
 
     @cached_property
     @abstractmethod
-    def old_server_tasks(self) -> List[DownloadTask] | None:
-        pass
-
-    @cached_property
-    @abstractmethod
-    def incompatible_client_tasks(self) -> List[DownloadTask]:
-        pass
-
-    @cached_property
-    @abstractmethod
-    def old_client_tasks(self) -> List[DownloadTask]:
+    def client_tasks(self) -> List[DownloadTask]:
         pass

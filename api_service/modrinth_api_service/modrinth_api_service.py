@@ -57,7 +57,7 @@ class ModrinthApiService(ApiService):
             versions.append(VersionResponse(**modrinth_version.model_dump()))
         if not versions:
             return None
-        return self._select_most_stable_version(versions)
+        return versions[0] # praying that the first version is the most stable one which it should be probably perchance maybe 👀
 
     @validate_call
     def get_version(self, version_id: Base62Str) -> VersionResponse:
@@ -67,7 +67,7 @@ class ModrinthApiService(ApiService):
         return VersionResponse(**modrinth_version.model_dump())
 
     @validate_call
-    def download_version(self, path_to_dir: DirectoryPath,
+    def download_version(self, path_to_new_file: Path,
                          download_link: AnyHttpUrl,
                          hash_value: str | None = None,
                          hash_algorithm: str | None = None) -> None:
@@ -80,22 +80,10 @@ class ModrinthApiService(ApiService):
         if hash_value and hash_algorithm:
             hasher = hashlib.new(hash_algorithm)
 
-        file_path = path_to_dir / Path(download_link.path).name
-        with open(file_path, "wb") as file:
+        with open(path_to_new_file, "wb") as file:
             for chunk in response.iter_content(chunk_size=8192):
                 file.write(chunk)
                 if hasher:
                     hasher.update(chunk)
         if hasher and hasher.hexdigest() != hash_value:
-            raise ValueError(f"Hash mismatch for {file_path}")
-
-    @validate_call
-    def _select_most_stable_version(self, versions: NotEmptyList[VersionResponse]) -> VersionResponse:
-        sorted_versions = sorted(versions, key=self._version_sorting_key)
-        return sorted_versions[0]
-
-    @staticmethod
-    def _version_sorting_key(v: VersionResponse) -> tuple[int, Version | None]:
-        if v.version_number:
-            return v.version_type.rank, Version(v.version_number)
-        return v.version_type.rank, Version("0.0.0")
+            raise ValueError(f"Hash mismatch for {path_to_new_file}")

@@ -35,7 +35,7 @@ def main() -> None:
     resolver = DependencyResolver(api_service=api_service,
                                   version_to_update_to=version_to_update_to)
 
-    update_manager = UpdateManager(resolver=resolver,
+    update_manager = UpdateManager(version_resolver=resolver,
                                    api_service=api_service,
                                    file_manager=file_manager,
                                    version_to_update_to=version_to_update_to,
@@ -47,7 +47,7 @@ def main() -> None:
             file_manager.restore_backup()
     except Exception as E:
         file_manager.restore_backup()
-        print("An error occurred during the update process. All changes have been undone.")
+        print("An error occurred during the update process. All changes have been reverted.")
         raise E
 
 if __name__ == "__main__":

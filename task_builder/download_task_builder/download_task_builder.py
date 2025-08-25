@@ -17,29 +17,14 @@ class DownloadTaskBuilder(TaskBuilder):
     version_to_update_to: Version
 
     @cached_property
-    def incompatible_server_tasks(self) -> List[DownloadTask] | None:
+    def server_tasks(self) -> List[DownloadTask] | None:
         if not self.file_manager.server_mods:
             return None
-        incompatible_mods = self._get_incompatible_mods(self.file_manager.server_mods)
-        return self._build_tasks(incompatible_mods)
+        return self._build_tasks(self.file_manager.server_mods)
 
     @cached_property
-    def old_server_tasks(self) -> List[DownloadTask] | None:
-        if self.incompatible_server_tasks is None:
-            return None
-        mods = [mod for mod in self.file_manager.server_mods if mod not in self.incompatible_server_tasks]
-        return self._build_tasks(mods)
-
-
-    @cached_property
-    def incompatible_client_tasks(self) -> List[DownloadTask]:
-        incompatible_mods = self._get_incompatible_mods(self.file_manager.client_mods)
-        return self._build_tasks(incompatible_mods)
-
-    @cached_property
-    def old_client_tasks(self) -> List[DownloadTask]:
-        mods = [mod for mod in self.file_manager.client_mods if mod not in self.incompatible_client_tasks]
-        return self._build_tasks(mods)
+    def client_tasks(self) -> List[DownloadTask]:
+        return self._build_tasks(self.file_manager.client_mods)
 
     @validate_call
     def _build_tasks(self, mods: List[ModMetadata]) -> List[DownloadTask]:
@@ -50,20 +35,6 @@ class DownloadTaskBuilder(TaskBuilder):
                 tasks.append(DownloadTask(version=valid_version, location_outdated_mod=mod.path, name=mod.project_slug))
             else:
                 most_recent_version = self.api_service.get_project_version(mod.project_slug)
-                tasks.append(DownloadTask(version=most_recent_version, location_outdated_mod=mod.path, name=mod.project_slug, needs_force_update=True))
+                force_update_version = None if most_recent_version.version_number == mod.version else most_recent_version
+                tasks.append(DownloadTask(version=force_update_version, location_outdated_mod=mod.path, name=mod.project_slug, needs_force_update=True))
         return tasks
-
-    @validate_call
-    def _get_incompatible_mods(self, mods: List[ModMetadata]) -> List[ModMetadata]:
-        incompatible_mods = []
-        for mod in mods:
-            if mod.force_updated:
-                incompatible_mods.append(mod)
-                continue
-            if "minecraft" not in mod.depends:
-                continue
-
-            minecraft_dependency = mod.depends["minecraft"]
-            if self.version_to_update_to not in NpmSpec(",".join(minecraft_dependency) if isinstance(minecraft_dependency, list) else minecraft_dependency):
-                incompatible_mods.append(mod)
-        return incompatible_mods
