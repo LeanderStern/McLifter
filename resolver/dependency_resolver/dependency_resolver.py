@@ -7,9 +7,9 @@ from api_service.api_service import ApiService
 from api_service.enums.dependency_type_enum import DependencyTypeEnum
 from api_service.models.version_response import VersionResponse
 from constraints import SemanticVersion
+from models.download_task import DownloadTask
 from resolver.exceptions import DependencyException
 from resolver.resolver import Resolver
-from task_builder.models.download_task import DownloadTask
 
 
 class DependencyResolver(Resolver):

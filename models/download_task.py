@@ -15,7 +15,7 @@ class DownloadTask(MCLBaseModel):
     name: str
     needs_force_update: bool = False
 
-    def __eq__(self, other: object) -> bool:
+    def __eq__(self, other: VersionResponse | str | ModMetadata) -> bool:
         match other:
             case VersionResponse():
                 if self.version and self.version.id == other.id:
@@ -35,3 +35,6 @@ class DownloadTask(MCLBaseModel):
                 return other.path == self.location_outdated_mod
             case _:
                 raise NotImplemented()
+
+    def __str__(self):
+        return f"name: {self.name} path: {self.location_outdated_mod.parent}"

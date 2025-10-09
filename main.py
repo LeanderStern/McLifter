@@ -1,15 +1,34 @@
 import json
 import logging
+from typing import List
 
-from semantic_version import Version
+from pydantic import validate_call
 
+from api_service.api_service import ApiService
 from api_service.modrinth_api_service.modrinth_api_service import ModrinthApiService
 from file_manager.fabric_file_manager.fabric_file_manager import FabricFileManager
+from file_manager.models import ModMetadata
+from models.download_task import DownloadTask
 from resolver.dependency_resolver.dependency_resolver import DependencyResolver
-from task_builder.download_task_builder.download_task_builder import DownloadTaskBuilder
 from update_manager.update_manager import UpdateManager
 from utils.handle_bool_input import handle_bool_input
 from utils.handle_minecraft_version_input import handle_minecraft_version_input
+
+
+@validate_call
+def build_tasks(mods: List[ModMetadata], api_service: ApiService, version_to_update_to: str) -> List[DownloadTask]:
+    tasks = []
+    for mod in mods:
+        valid_version = api_service.get_project_version(mod.project_slug, version_to_update_to)
+        if valid_version:
+            tasks.append(DownloadTask(version=valid_version, location_outdated_mod=mod.path, name=mod.project_slug))
+        else:
+            most_recent_version = api_service.get_project_version(mod.project_slug)
+            force_update_version = None if most_recent_version.version_number == mod.version else most_recent_version
+            tasks.append(
+                DownloadTask(version=force_update_version, location_outdated_mod=mod.path, name=mod.project_slug,
+                             needs_force_update=True))
+    return tasks
 
 def main() -> None:
     update_server: bool = handle_bool_input("update server mods too?")
@@ -27,19 +46,14 @@ def main() -> None:
                                          path_server_mods=server_path)
 
     api_service = ModrinthApiService(mod_loader=file_manager.MOD_LOADER)
-
-    builder = DownloadTaskBuilder(version_to_update_to=Version(version_to_update_to),
-                                  file_manager=file_manager,
-                                  api_service=api_service)
-
     resolver = DependencyResolver(api_service=api_service,
                                   version_to_update_to=version_to_update_to)
 
-    update_manager = UpdateManager(version_resolver=resolver,
+    resolved_tasks: List[DownloadTask] = resolver.resolve_dependencies(build_tasks(file_manager.client_mods)) + resolver.resolve_dependencies(build_tasks(file_manager.server_mods))
+    update_manager = UpdateManager(tasks=resolved_tasks,
                                    api_service=api_service,
                                    file_manager=file_manager,
-                                   version_to_update_to=version_to_update_to,
-                                   task_builder=builder)
+                                   version_to_update_to=version_to_update_to)
 
     try:
         update_manager.update_all_mods()

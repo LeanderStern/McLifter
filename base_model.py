@@ -17,7 +17,7 @@ class MCLBaseModel(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True,
                               strict=True,
                               serialize_by_alias=True)
-    _LOGGER: ClassVar[Logger] = None
+    _LOGGER: ClassVar[Logger | None] = None
 
     @cached_property
     def logger(self) -> Logger:

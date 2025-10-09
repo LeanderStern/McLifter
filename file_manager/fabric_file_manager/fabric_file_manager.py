@@ -22,7 +22,7 @@ class FabricFileManager(FileManager):
     _BACKUP_FOLDER_PATH: ClassVar[Path] = Path(__file__).parent / "backups"
     _BACKUP_PATH_CLIENT_MODS: ClassVar[Path] = _BACKUP_FOLDER_PATH / "client_mods_backup"
     _BACKUP_PATH_SERVER_MODS: ClassVar[Path] = _BACKUP_FOLDER_PATH / "server_mods_backup"
-    _MC_LIFTER_FORCE_UPDATED_FLAG: ClassVar[str] = "force-updated-by-MC-Lifter"
+    _MC_LIFTER_FORCE_UPDATED_TAG: ClassVar[str] = "force-updated-by-MC-Lifter"
 
     path_server_mods: DirectoryPath | None = Field(strict=False, default=None)
     include_server_mods: bool
@@ -58,7 +58,7 @@ class FabricFileManager(FileManager):
             json_file: dict = json.load(json_bytes)
         if "custom" not in json_file:
             json_file["custom"] = {}
-        json_file["custom"][self._MC_LIFTER_FORCE_UPDATED_FLAG] = True
+        json_file["custom"][self._MC_LIFTER_FORCE_UPDATED_TAG] = True
         if "minecraft" in json_file["depends"]:
             json_file["depends"]["minecraft"] = minecraft_version
         else:
@@ -114,7 +114,7 @@ class FabricFileManager(FileManager):
 
                 json_file["path"] = path
                 metadata = ModMetadata(**json_file)
-                if "custom" in json_file and self._MC_LIFTER_FORCE_UPDATED_FLAG in json_file["custom"]:
+                if "custom" in json_file and self._MC_LIFTER_FORCE_UPDATED_TAG in json_file["custom"]:
                     metadata.force_updated = True
                 mods.append(metadata)
         return mods

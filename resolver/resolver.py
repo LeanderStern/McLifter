@@ -2,7 +2,7 @@ from abc import abstractmethod, ABC
 from typing import List
 
 from base_model import MCLBaseModel
-from task_builder.models.download_task import DownloadTask
+from models.download_task import DownloadTask
 
 
 class Resolver(MCLBaseModel, ABC):
