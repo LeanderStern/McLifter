@@ -6,7 +6,7 @@ from api_service.api_service import ApiService
 from base_model import MCLBaseModel
 from constraints import SemanticVersion
 from file_manager.file_manager import FileManager
-from models.download_task import DownloadTask
+from task_builder.models.download_task import DownloadTask
 from utils.handle_bool_input import handle_bool_input
 
 
@@ -25,14 +25,13 @@ class UpdateManager(MCLBaseModel):
         force_update_candidates: list[DownloadTask] = self.find_force_update_candidates(self.tasks)
         number_of_candidates: int = len(force_update_candidates)
         if number_of_candidates > 0:
-            message_header = f"Do you want to force update the following mod{'s' if number_of_candidates > 1 else ''}?"
+            message_header = (f"The following mod{'s' if number_of_candidates > 1 else ''} are not available for {self.version_to_update_to} "
+                              f"do you want to force update them?")
             tasks = "\n\n".join([str(item) for item in force_update_candidates])
 
-            self._force_update = handle_bool_input(message_header + '\n' + tasks)
+            self._force_update = handle_bool_input(message_header + '\n\n' + tasks)
 
-    def update_all_mods(self):
-        if not self.tasks:
-            return None
+    def update_all_mods(self) -> None:
         for task in self.tasks:
             current_task_file_path = task.location_outdated_mod
             if task.version:
@@ -49,7 +48,6 @@ class UpdateManager(MCLBaseModel):
                                                       dependency.file.hash_algorithm)
             if self._force_update and task.needs_force_update:
                 self.file_manager.force_update_mod(current_task_file_path, self.version_to_update_to)
-        return None
 
     @validate_call
     def find_force_update_candidates(self, tasks: list[DownloadTask]) -> List[DownloadTask]:

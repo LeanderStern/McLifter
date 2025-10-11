@@ -4,16 +4,15 @@ from pathlib import Path
 from typing import List, ClassVar, Any
 
 import requests
-from pydantic import validate_call, AnyHttpUrl
+from pydantic import validate_call, AnyHttpUrl, PrivateAttr
 from requests import Response, Session
 from requests.adapters import HTTPAdapter
-from semantic_version import Version
 from urllib3 import Retry
 
 from api_service.api_service import ApiService
 from api_service.models.version_response import VersionResponse
 from api_service.modrinth_api_service.models.modrinth_version_response import ModrinthVersionResponse
-from constraints import Base62Str, NotEmptyList, DirectoryPath, SemanticVersion
+from constraints import Base62Str, SemanticVersion
 
 
 class ModrinthApiService(ApiService):
@@ -26,7 +25,7 @@ class ModrinthApiService(ApiService):
         total=5,
         status_forcelist=[500, 502, 503, 504]
     )
-    _session: Session = requests.Session()
+    _session: Session = PrivateAttr(requests.Session())
 
     def model_post_init(self, __context: Any) -> None:
         self._session.mount("https://", HTTPAdapter(max_retries=self._RETRY))

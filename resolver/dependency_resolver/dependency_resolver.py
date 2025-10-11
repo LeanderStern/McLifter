@@ -6,10 +6,10 @@ from pydantic import validate_call, PrivateAttr
 from api_service.api_service import ApiService
 from api_service.enums.dependency_type_enum import DependencyTypeEnum
 from api_service.models.version_response import VersionResponse
-from constraints import SemanticVersion
-from models.download_task import DownloadTask
+from constraints import SemanticVersion, NotEmptyList
 from resolver.exceptions import DependencyException
 from resolver.resolver import Resolver
+from task_builder.models.download_task import DownloadTask
 
 
 class DependencyResolver(Resolver):
@@ -19,22 +19,18 @@ class DependencyResolver(Resolver):
     _all_current_tasks_to_resolve: List[DownloadTask] | None = PrivateAttr(None)
 
     @validate_call
-    def resolve_dependencies(self, tasks: List[DownloadTask]) -> List[DownloadTask]:
-        # There could be a case where a task has a version that needs a force update and has a dependencies that needs a different version of the same mod
+    def resolve_dependencies(self, tasks: NotEmptyList[DownloadTask]) -> List[DownloadTask]:
+        # There could be a case where a task has a version that needs a force update and has a dependency that needs a different version of the same mod
         # if that ever happens, and it causes issues, change the logic in the resolver to ignore the dependencies of a task when it has the needs_force_update flag
-        task_list = []
+
         resolved_tasks = self._resolve_task_dependencies(tasks)
-        if resolved_tasks:
-            task_list.extend(resolved_tasks)
-        elif resolved_tasks is None:
+        if resolved_tasks is None:
             raise DependencyException("Unable to resolve dependencies")
 
-        return task_list
+        return resolved_tasks
 
     @validate_call
-    def _resolve_task_dependencies(self, list_to_resolve: List[DownloadTask]) -> List[DownloadTask] | None:
-        if len(list_to_resolve) < 1:
-            return []
+    def _resolve_task_dependencies(self, list_to_resolve: NotEmptyList[DownloadTask]) -> List[DownloadTask] | None:
         copied_list = copy.deepcopy(list_to_resolve)
         self._all_current_tasks_to_resolve = copied_list
 

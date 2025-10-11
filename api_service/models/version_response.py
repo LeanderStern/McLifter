@@ -25,4 +25,4 @@ class VersionResponse(MCLBaseModel):
             case VersionResponse():
                 return self.id == other.id
             case _:
-                raise TypeError("Can only compare DownloadTask with DownloadTask")
+                raise NotImplemented()

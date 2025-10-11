@@ -14,17 +14,12 @@ class FileManager(MCLBaseModel, ABC):
 
     @cached_property
     @abstractmethod
-    def server_mods(self) -> List[ModMetadata] | None:
-        pass
-
-    @cached_property
-    @abstractmethod
-    def client_mods(self) -> List[ModMetadata]:
-        pass
+    def mod_metadata(self) -> List[List[ModMetadata]] | None:
+        """Each list inside the list represents a mod folder."""
 
     @abstractmethod
     def force_update_mod(self, path_mod: FilePath, minecraft_version: SemanticVersion) -> None:
-        """Mods that get force updated are marked inside the metadata as force updated."""
+        """Mods that get force updated are marked inside the metadata as force updated in the custom section."""
 
     @abstractmethod
     def restore_backup(self) -> None:

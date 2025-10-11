@@ -5,12 +5,12 @@ from functools import cached_property
 from pathlib import Path
 from shutil import rmtree
 from tempfile import mkdtemp
-from typing import ClassVar, List, Self, Any
+from typing import ClassVar, List, Any, Dict
 from zipfile import ZipFile
 
-from pydantic import validate_call, Field, model_validator
+from pydantic import validate_call, PrivateAttr
 
-from constraints import DirectoryPath, FilePath, SemanticVersion
+from constraints import DirectoryPath, FilePath, SemanticVersion, NotEmptyList
 from file_manager.file_manager import FileManager
 from file_manager.models import ModMetadata
 
@@ -20,31 +20,25 @@ class FabricFileManager(FileManager):
 
     _FABRIC_MOD_INFO_FILE: ClassVar[str] = "fabric.mod.json"
     _BACKUP_FOLDER_PATH: ClassVar[Path] = Path(__file__).parent / "backups"
-    _BACKUP_PATH_CLIENT_MODS: ClassVar[Path] = _BACKUP_FOLDER_PATH / "client_mods_backup"
-    _BACKUP_PATH_SERVER_MODS: ClassVar[Path] = _BACKUP_FOLDER_PATH / "server_mods_backup"
-    _MC_LIFTER_FORCE_UPDATED_TAG: ClassVar[str] = "force-updated-by-MC-Lifter"
 
-    path_server_mods: DirectoryPath | None = Field(strict=False, default=None)
-    include_server_mods: bool
-    path_client_mods: DirectoryPath = Field(strict=False, default=Path().home() / "AppData" / "Roaming" / ".minecraft" / "mods")
+    mod_folder_paths: NotEmptyList[DirectoryPath]
+    _backup_paths: Dict[DirectoryPath, DirectoryPath] = PrivateAttr(default_factory=dict)
 
     def model_post_init(self, __context: Any) -> None:
-        self.logger.debug(f"backing up mods from {self.path_client_mods} to {self._BACKUP_PATH_CLIENT_MODS}\n")
-        self._copy_folder(self.path_client_mods, self._BACKUP_PATH_CLIENT_MODS)
-        if self.include_server_mods and self.path_server_mods is not None:
-            self.logger.debug(f"backing up server mods from {self.path_server_mods} to {self._BACKUP_PATH_SERVER_MODS}\n")
-            self._copy_folder(self.path_server_mods, self._BACKUP_PATH_SERVER_MODS)
+        if not self._BACKUP_FOLDER_PATH.exists():
+            self._BACKUP_FOLDER_PATH.mkdir()
+        for path in self.mod_folder_paths:
+            backup_path = self._BACKUP_FOLDER_PATH / path.parent.name
+            self._backup_paths[path] = backup_path
+            self.logger.info(f"backing up mods from {path} to {backup_path}\n")
+            self._copy_folder(path, backup_path)
 
     @cached_property
-    def server_mods(self) -> List[ModMetadata] | None:
-        if self.include_server_mods:
-            return self._get_all_mod_infos(self.path_server_mods)
-        else:
-            return None
-
-    @cached_property
-    def client_mods(self) -> List[ModMetadata]:
-        return self._get_all_mod_infos(self.path_client_mods)
+    def mod_metadata(self) -> List[List[ModMetadata]] | None:
+        data: List[List[ModMetadata]] = []
+        for path in self.mod_folder_paths:
+            data.append(self._get_all_mod_infos(path))
+        return data
 
     @validate_call
     def force_update_mod(self, path_mod: FilePath, minecraft_version: SemanticVersion) -> None:
@@ -56,9 +50,6 @@ class FabricFileManager(FileManager):
 
         with open(metadata_path) as json_bytes:
             json_file: dict = json.load(json_bytes)
-        if "custom" not in json_file:
-            json_file["custom"] = {}
-        json_file["custom"][self._MC_LIFTER_FORCE_UPDATED_TAG] = True
         if "minecraft" in json_file["depends"]:
             json_file["depends"]["minecraft"] = minecraft_version
         else:
@@ -76,18 +67,12 @@ class FabricFileManager(FileManager):
         rmtree(temp_dir)
 
     def restore_backup(self) -> None:
-        exception_string = "Backup folder {folder} is empty or does not exist."
-
-        if self._BACKUP_PATH_CLIENT_MODS.exists() and any(self._BACKUP_PATH_CLIENT_MODS.iterdir()):
-            self._copy_folder(self._BACKUP_PATH_CLIENT_MODS, self.path_client_mods)
-        else:
-            raise FileNotFoundError(exception_string.format(folder=self._BACKUP_PATH_CLIENT_MODS))
-
-        if self.include_server_mods and self.path_server_mods is not None:
-            if self._BACKUP_PATH_SERVER_MODS.exists() and any(self._BACKUP_PATH_SERVER_MODS.iterdir()):
-                self._copy_folder(self._BACKUP_PATH_SERVER_MODS, self.path_server_mods)
+        for path in self.mod_folder_paths:
+            backup_path = self._backup_paths[path]
+            if backup_path.exists() and any(backup_path.iterdir()):
+                self._copy_folder(backup_path, path)
             else:
-                raise FileNotFoundError(exception_string.format(folder=self._BACKUP_PATH_SERVER_MODS))
+                raise FileNotFoundError(f"Backup folder {backup_path} doesnt contain any files.")
 
     @validate_call
     def _copy_folder(self, source: DirectoryPath, destination: Path) -> None:
@@ -114,13 +99,5 @@ class FabricFileManager(FileManager):
 
                 json_file["path"] = path
                 metadata = ModMetadata(**json_file)
-                if "custom" in json_file and self._MC_LIFTER_FORCE_UPDATED_TAG in json_file["custom"]:
-                    metadata.force_updated = True
                 mods.append(metadata)
         return mods
-
-    @model_validator(mode="after")
-    def _validate_path_to_server(self) -> Self:
-        if self.path_server_mods is None and self.include_server_mods:
-            raise ValueError("path_to_server must be provided if include_server_mods is True")
-        return self
