@@ -61,5 +61,5 @@ def main() -> None:
         raise E
 
 if __name__ == "__main__":
-    logging.getLogger().setLevel(logging.DEBUG)
+    logging.getLogger().setLevel(logging.INFO)
     main()
