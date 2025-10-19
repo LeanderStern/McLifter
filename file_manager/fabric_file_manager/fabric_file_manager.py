@@ -19,7 +19,7 @@ class FabricFileManager(FileManager):
     MOD_LOADER: ClassVar[str] = "fabric"
 
     _FABRIC_MOD_INFO_FILE: ClassVar[str] = "fabric.mod.json"
-    _BACKUP_FOLDER_PATH: ClassVar[Path] = Path(__file__).parent / "backups"
+    _BACKUP_FOLDER_PATH: ClassVar[Path] = Path("backups")
 
     mod_folder_paths: NotEmptyList[DirectoryPath]
     _backup_paths: Dict[DirectoryPath, DirectoryPath] = PrivateAttr(default_factory=dict)

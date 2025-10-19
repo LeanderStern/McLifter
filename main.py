@@ -12,16 +12,29 @@ from resolver.dependency_resolver.dependency_resolver import DependencyResolver
 from task_builder.fabric_task_builder.fabric_task_builder import FabricTaskBuilder
 from task_builder.models.download_task import DownloadTask
 from update_manager.update_manager import UpdateManager
+from utils.exception_handler import exception_handler
 from utils.handle_bool_input import handle_bool_input
 from utils.handle_minecraft_version_input import handle_minecraft_version_input
 
 
+@exception_handler
 def main() -> None:
     version_to_update_to: Version = handle_minecraft_version_input("to which version should the mods be updated?")
 
     with open("config.json", "r") as file:
-        config = json.load(file)
-    server_mod_path: DirectoryPath | None = Path(config["absolute_server_mod_folder_path"]) if len(config["absolute_server_mod_folder_path"]) > 0 else None
+        try:
+            config = json.load(file)
+        except json.JSONDecodeError as E:
+            print(r'config.json is not valid json. Please ensure the file paths dont contain any backwords slashes "\". '
+                  r'Either use forward slashes "/" or use two backwords slashes "\\".')
+            raise E
+
+    server_mod_path: DirectoryPath | None = None
+    if len(config["absolute_server_mod_folder_path"]) > 0:
+        server_mod_path = Path(config["absolute_server_mod_folder_path"])
+    else:
+        print("path to server mod folder not provided, skipping server mods")
+
     client_mod_path: DirectoryPath | None = None
     if len(config["absolute_client_mod_folder_path"]) <= 0:
         print("path to client mod folder not provided, using default minecraft installation path")
@@ -33,7 +46,7 @@ def main() -> None:
     if handle_bool_input("update client mods?"):
         paths.append(client_mod_path)
     if len(paths) <= 0:
-        print("bruh")
+        print("0_0")
         return None
 
     file_manager = FabricFileManager(mod_folder_paths=paths)
