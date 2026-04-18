@@ -19,26 +19,17 @@ class FabricFileManager(FileManager):
     MOD_LOADER: ClassVar[str] = "fabric"
 
     _FABRIC_MOD_INFO_FILE: ClassVar[str] = "fabric.mod.json"
-    _BACKUP_FOLDER_PATH: ClassVar[Path] = Path("backups")
 
-    mod_folder_paths: NotEmptyList[DirectoryPath]
-    _backup_paths: Dict[DirectoryPath, DirectoryPath] = PrivateAttr(default_factory=dict)
+    mod_folder_path: DirectoryPath
 
     def model_post_init(self, __context: Any) -> None:
-        if not self._BACKUP_FOLDER_PATH.exists():
-            self._BACKUP_FOLDER_PATH.mkdir()
-        for path in self.mod_folder_paths:
-            backup_path = self._BACKUP_FOLDER_PATH / path.parent.name
-            self._backup_paths[path] = backup_path
-            self.logger.info(f"backing up mods from {path} to {backup_path}\n")
-            self._copy_folder(path, backup_path)
+        if not self._BACKUP_ROOT_FOLDER.exists():
+            self._BACKUP_ROOT_FOLDER.mkdir()
+        self._backup_path = self._BACKUP_ROOT_FOLDER / self.mod_folder_path.parent.name
 
     @cached_property
-    def mod_metadata(self) -> List[List[ModMetadata]] | None:
-        data: List[List[ModMetadata]] = []
-        for path in self.mod_folder_paths:
-            data.append(self._get_all_mod_infos(path))
-        return data
+    def mod_metadata(self) -> List[ModMetadata] | None:
+        return self._get_all_mod_infos(self.mod_folder_path)
 
     @validate_call
     def force_update_mod(self, path_mod: FilePath, minecraft_version: SemanticVersion) -> None:
@@ -66,24 +57,6 @@ class FabricFileManager(FileManager):
                     new_jar.write(file_path, arcname)
         rmtree(temp_dir)
 
-    def restore_backup(self) -> None:
-        for path in self.mod_folder_paths:
-            backup_path = self._backup_paths[path]
-            if backup_path.exists() and any(backup_path.iterdir()):
-                self._copy_folder(backup_path, path)
-            else:
-                raise FileNotFoundError(f"Backup folder {backup_path} doesnt contain any files.")
-
-    @validate_call
-    def _copy_folder(self, source: DirectoryPath, destination: Path) -> None:
-        if not any(source.iterdir()):
-            raise FileNotFoundError(f"Source folder {source} doesnt contain any files.")
-
-        if destination.exists():
-            shutil.rmtree(destination)
-        shutil.copytree(source, destination)
-
-    @validate_call
     def _get_all_mod_infos(self, path_to_mod_folder: DirectoryPath) -> List[ModMetadata]:
         mods = []
         for path in path_to_mod_folder.iterdir():

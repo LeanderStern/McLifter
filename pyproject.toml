@@ -1,0 +1,17 @@
+[project]
+name = "mclifter"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "pydantic>=2.13.0",
+    "requests>=2.33.1",
+    "semantic-version>=2.10.0",
+    "textual>=8.2.3",
+]
+
+[dependency-groups]
+dev = [
+    "textual-dev>=1.8.0",
+]

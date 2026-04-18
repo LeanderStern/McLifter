@@ -1,0 +1,13 @@
+Screen {
+    background: hsl(0, 0%, 10%);
+    border: round darkorchid;
+    border-title-style: bold;
+}
+
+Header {
+    dock: top;
+    width: 100%;
+    text-align: right;
+    color: hsl(0, 0%, 90%);
+    padding: 0 1 0 0;
+}

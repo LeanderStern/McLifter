@@ -1,4 +1,0 @@
-pydantic==2.11.7
-Requests==2.32.4
-semantic_version==2.10.0
-urllib3==2.5.0

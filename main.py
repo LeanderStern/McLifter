@@ -11,6 +11,7 @@ from file_manager.fabric_file_manager.fabric_file_manager import FabricFileManag
 from resolver.dependency_resolver.dependency_resolver import DependencyResolver
 from task_builder.fabric_task_builder.fabric_task_builder import FabricTaskBuilder
 from task_builder.models.download_task import DownloadTask
+from tui.mc_lifter_tui import McLifterTui
 from update_manager.update_manager import UpdateManager
 from utils.exception_handler import exception_handler
 from utils.handle_bool_input import handle_bool_input
@@ -18,7 +19,7 @@ from utils.handle_minecraft_version_input import handle_minecraft_version_input
 
 
 @exception_handler
-def main() -> None:
+def old_main() -> None:
     version_to_update_to: Version = handle_minecraft_version_input("to which version should the mods be updated?")
 
     with open("config.json", "r") as file:
@@ -73,6 +74,38 @@ def main() -> None:
         print("An error occurred during the update process. All changes have been reverted.")
         raise E
 
+@exception_handler
+def main() -> None:
+    # TODO !!DEPENDENCY INJECTION BEIBEHALTEN!!
+    # TODO autofill last provided path based on backup
+    # Path().home() / "AppData" / "Roaming" / ".minecraft" / "mods"
+    api_service = ModrinthApiService(mod_loader=FabricFileManager.MOD_LOADER)
+    api_service.is_api_reachable()
+    app = McLifterTui(api_service=api_service, file_manager_reference=FabricFileManager)
+    app.run()
+
+    task_builder = FabricTaskBuilder(api_service=api_service, version_to_update_to=version_to_update_to)
+    resolver = DependencyResolver(api_service=api_service,
+                                  version_to_update_to=str(version_to_update_to))
+
+    resolved_tasks: List[DownloadTask] = list()
+    for mod_folder in file_manager.mod_metadata:
+        tasks = task_builder.generate_tasks(mod_folder)
+        resolved_tasks.extend(resolver.resolve_dependencies(tasks))
+    update_manager = UpdateManager(tasks=resolved_tasks,
+                                   api_service=api_service,
+                                   file_manager=file_manager,
+                                   version_to_update_to=str(version_to_update_to))
+
+    try:
+        update_manager.update_all_mods()
+        if handle_bool_input("undo all changes?"):
+            file_manager.restore_backup()
+    except Exception as E:
+        file_manager.restore_backup()
+        print("An error occurred during the update process. All changes have been reverted.")
+        raise E
+
 if __name__ == "__main__":
-    logging.getLogger().setLevel(logging.INFO)
+    # TODO Logging config: logging.getLogger().setLevel(logging.)
     main()

@@ -19,6 +19,7 @@ class ModrinthApiService(ApiService):
     mod_loader: str
 
     _HOST_URL: ClassVar[str] = "https://api.modrinth.com/v2"
+    _STATUS_URL: ClassVar[str] = "https://staging-api.modrinth.com/"
     _GET_ALL_VERSIONS_URL: ClassVar[str] = _HOST_URL + "/project/{project_id}/version"
     _GET_VERSION_URL: ClassVar[str] = _HOST_URL + "/version/{version_id}"
     _RETRY: ClassVar[Retry] = Retry(
@@ -29,6 +30,13 @@ class ModrinthApiService(ApiService):
 
     def model_post_init(self, __context: Any) -> None:
         self._session.mount("https://", HTTPAdapter(max_retries=self._RETRY))
+
+    def is_api_reachable(self) -> bool:
+        try:
+            self._session.get(url=self._STATUS_URL)
+        except (requests.exceptions.RetryError, requests.exceptions.ConnectionError):
+            return False
+        return True
 
     @validate_call
     def get_project_version(self, project_slug: str, minecraft_version: SemanticVersion | None = None) -> VersionResponse | None:

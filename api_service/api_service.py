@@ -26,3 +26,7 @@ class ApiService(MCLBaseModel, ABC):
                          hash_value: str | None = None,
                          hash_algorithm: str | None = None) -> None:
         pass
+
+    @abstractmethod
+    def is_api_reachable(self) -> bool:
+        pass

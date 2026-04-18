@@ -1,12 +1,15 @@
 from abc import abstractmethod, ABC
 from typing import List
 
+from api_service.api_service import ApiService
 from base_model import MCLBaseModel
-from constraints import NotEmptyList
+from constraints import NotEmptyList, SemanticVersion
 from task_builder.models.download_task import DownloadTask
 
 
 class Resolver(MCLBaseModel, ABC):
+    api_service: ApiService
+    version_to_update_to: SemanticVersion
 
     @abstractmethod
     def resolve_dependencies(self, tasks: NotEmptyList[DownloadTask]) -> List[DownloadTask]:
