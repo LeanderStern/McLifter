@@ -1,0 +1,27 @@
+* {
+    outline: red;
+}
+
+SelectPathsDialog {
+    align: center middle;
+
+    Container {
+        border: thick hsl(0, 0%, 15%);
+        background: hsl(0, 0%, 20%);
+        height: auto;
+        max-height: 90%;
+        width: auto;
+        max-width: 90%;
+        padding: 1 6;
+
+        OptionList {
+            height: 1fr;
+            max-height: 20;
+            width: auto;
+        }
+
+        Horizontal {
+            height: auto;
+        }
+    }
+}

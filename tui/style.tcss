@@ -1,4 +1,4 @@
-Screen {
+#app-container {
     background: hsl(0, 0%, 10%);
     border: round darkorchid;
     border-title-style: bold;

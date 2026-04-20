@@ -9,13 +9,12 @@ from pydantic import PrivateAttr
 from base_model import MCLBaseModel
 from constraints import SemanticVersion, FilePath, DirectoryPath
 from file_manager.models import ModMetadata
-from utils.copy_folder import copy_folder
 
 
 class FileManager(MCLBaseModel, ABC):
 
     MOD_LOADER: ClassVar[str]
-    _BACKUP_ROOT_FOLDER: ClassVar[Path] = Path("backup")
+    _BACKUP_ROOT_FOLDER: ClassVar[Path] = Path("backups")
     _BACKUP_SOURCE_PATH_FILE_NAME: ClassVar[str] = ".source_path.txt"
 
     mod_folder_path: DirectoryPath
@@ -33,7 +32,9 @@ class FileManager(MCLBaseModel, ABC):
 
     def backup_mods(self) -> None:
         self.logger.info(f"backing up mods from {self.mod_folder_path} to {self._backup_path}\n")
-        copy_folder(self.mod_folder_path, self._backup_path)
+        self.copy_folder(self.mod_folder_path, self._backup_path)
+        with open(self._backup_path / self._BACKUP_SOURCE_PATH_FILE_NAME, "w") as file:
+            file.write(str(self.mod_folder_path))
 
     def restore_backup(self) -> None:
         if self._backup_path.exists() and any(self._backup_path.iterdir()):
@@ -42,13 +43,20 @@ class FileManager(MCLBaseModel, ABC):
             raise FileNotFoundError(f"Backup folder {self._backup_path,} doesnt contain any files.")
 
     @classmethod
-    def get_backup_paths(cls) -> List[DirectoryPath]:
-        return [file for file in cls._BACKUP_ROOT_FOLDER.iterdir() if file.is_dir()]
+    def get_source_paths_from_backups(cls) -> List[DirectoryPath] | None:
+        if cls._BACKUP_ROOT_FOLDER.exists():
+            sourced_paths = []
+            for path in cls._BACKUP_ROOT_FOLDER.iterdir():
+                with open(path / cls._BACKUP_SOURCE_PATH_FILE_NAME) as file:
+                    sourced_paths.append(Path(file.read()))
+            return sourced_paths
+        return None
 
     @classmethod
-    def get_source_path_from_backup(cls, backup_path: Path) -> DirectoryPath:
-        for path in cls._BACKUP_ROOT_FOLDER.iterdir():
-            if path == backup_path:
-                with open(backup_path / cls._BACKUP_SOURCE_PATH_FILE_NAME) as file:
-                    return Path(file.read())
-        raise ValueError(f"Backup path {backup_path} not found in backup root folder.")
+    def copy_folder(cls, source: DirectoryPath, destination: DirectoryPath) -> None:
+        if not any(source.iterdir()):
+            raise FileNotFoundError(f"Source folder {source} doesnt contain any files.")
+
+        if destination.exists():
+            shutil.rmtree(destination)
+        shutil.copytree(source, destination, ignore=shutil.ignore_patterns(cls._BACKUP_SOURCE_PATH_FILE_NAME))

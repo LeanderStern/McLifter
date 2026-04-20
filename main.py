@@ -107,5 +107,6 @@ def main() -> None:
         raise E
 
 if __name__ == "__main__":
-    # TODO Logging config: logging.getLogger().setLevel(logging.)
+    # TODO logging implementation
+    logging.getLogger().setLevel(logging.FATAL)
     main()

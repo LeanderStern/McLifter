@@ -6,8 +6,8 @@ from textual.screen import Screen, ModalScreen
 from textual.widgets import Label, Button
 
 class ButtonTypeEnum(StrEnum):
-    YES = "yes"
-    NO = "no"
+    YES = "Yes"
+    NO = "No"
 
 class YesNoDialogScreen(ModalScreen):
     CSS_PATH = "style.tcss"
