@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import stat
 from functools import cached_property
 from pathlib import Path
 from shutil import rmtree
@@ -82,6 +83,8 @@ class FabricFileManager(FileManager):
         if destination.exists():
             shutil.rmtree(destination)
         shutil.copytree(source, destination)
+        # TODO Rechte Fixen
+        os.chmod(destination, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH)
 
     @validate_call
     def _get_all_mod_infos(self, path_to_mod_folder: DirectoryPath) -> List[ModMetadata]:

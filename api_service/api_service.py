@@ -11,8 +11,8 @@ class ApiService(MCLBaseModel, ABC):
 
     @abstractmethod
     @validate_call
-    def get_project_version(self, project_slug, minecraft_version: SemanticVersion | None) -> VersionResponse | None:
-        """if minecraft_version is None, the function returns the most recent version"""
+    def get_project_version(self, project_slug, minecraft_version: SemanticVersion | None = None, most_recent_version: bool = False) -> VersionResponse | None:
+        """If most_recent_version is True and a minecraft_version is provided, the most recent version for that minecraft version is returned."""""
 
     @abstractmethod
     @validate_call
