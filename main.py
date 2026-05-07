@@ -78,6 +78,7 @@ def old_main() -> None:
 def main() -> None:
     # TODO !!DEPENDENCY INJECTION BEIBEHALTEN!!
     # TODO autofill last provided path based on backup
+    # TODO test if the new backup logic works with previously saved paths, only use color vars from theme and not random ones
     # Path().home() / "AppData" / "Roaming" / ".minecraft" / "mods"
     api_service = ModrinthApiService(mod_loader=FabricFileManager.MOD_LOADER)
     api_service.is_api_reachable()

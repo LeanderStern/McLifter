@@ -1,27 +1,27 @@
-* {
-    outline: red;
-}
-
 SelectPathsDialog {
     align: center middle;
 
-    Container {
+    Grid {
+        width: auto;
+        height: auto;
         border: thick hsl(0, 0%, 15%);
         background: hsl(0, 0%, 20%);
-        height: auto;
         max-height: 90%;
-        width: auto;
-        max-width: 90%;
         padding: 1 6;
+        grid-size: 2;
+        grid-columns: auto;
+        grid-rows: auto 1fr auto;
+        grid-gutter: 1;
+    }
 
-        OptionList {
-            height: 1fr;
-            max-height: 20;
-            width: auto;
-        }
+    Label {
+        column-span: 2;
+        text-style: bold;
+        margin-top: 1;
+    }
 
-        Horizontal {
-            height: auto;
-        }
+    OptionList {
+        column-span: 2;
+        width: auto;
     }
 }
