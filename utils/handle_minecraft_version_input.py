@@ -8,6 +8,8 @@ from semantic_version import Version, validate
 def handle_minecraft_version_input(input_string: str) -> Version:
     while True:
         version = input(input_string + " ")
+        if version.count(".") < 2:
+            version += ".0"
         if validate(version):
             return Version(version)
         os.system("cls")

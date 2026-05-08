@@ -7,6 +7,7 @@ import requests
 from pydantic import validate_call, AnyHttpUrl, PrivateAttr
 from requests import Response, Session
 from requests.adapters import HTTPAdapter
+from semantic_version import Version, NpmSpec
 from urllib3 import Retry
 
 from api_service.api_service import ApiService
@@ -39,9 +40,9 @@ class ModrinthApiService(ApiService):
         return True
 
     @validate_call
-    def get_project_version(self, project_slug: str, minecraft_version: SemanticVersion | None = None) -> VersionResponse | None:
+    def get_project_version(self, project_slug: str, minecraft_version: SemanticVersion | None = None, most_recent_version: bool = False) -> VersionResponse | None:
         params = {"loaders": json.dumps([self.mod_loader])}
-        if minecraft_version:
+        if minecraft_version and not most_recent_version:
             params["game_versions"] = json.dumps([minecraft_version])
         response: Response = self._session.get(
             url=self._GET_ALL_VERSIONS_URL.format(project_id=project_slug),
@@ -58,13 +59,27 @@ class ModrinthApiService(ApiService):
             if response.status_code == 404:
                 print(f"Invalid project id: {new_project_slug}. Please try again.")
 
-        versions: List[VersionResponse] = []
+        versions: List[ModrinthVersionResponse] = []
         for version in response.json():
-            modrinth_version = ModrinthVersionResponse(**version)
-            versions.append(VersionResponse(**modrinth_version.model_dump()))
-        if not versions:
+            versions.append(ModrinthVersionResponse(**version))
+            if not most_recent_version:
+                break
+        if len(versions) <= 0 and not most_recent_version:
             return None
-        return versions[0] # praying that the first version is the most stable one which it should be probably perchance maybe 👀
+
+        # The versions are sorted from newest to oldest according to the modrinth api docs
+        for version in versions:
+            if version.game_versions:
+                for game_version in version.game_versions:
+                    valid_semantic_version = game_version
+                    if valid_semantic_version.count(".") < 2:
+                        valid_semantic_version += ".0"
+
+                    if Version(valid_semantic_version) <= Version(minecraft_version):
+                        return VersionResponse(**version.model_dump())
+            else:
+                return VersionResponse(**version.model_dump())
+        return None
 
     @validate_call
     def get_version(self, version_id: Base62Str) -> VersionResponse:

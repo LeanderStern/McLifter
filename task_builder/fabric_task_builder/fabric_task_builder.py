@@ -25,7 +25,7 @@ class FabricTaskBuilder(TaskBuilder):
                     continue
                 tasks.append(DownloadTask(version=valid_version, location_outdated_mod=mod.path, name=mod.project_slug))
             else:
-                most_recent_version = self.api_service.get_project_version(mod.project_slug)
+                most_recent_version = self.api_service.get_project_version(mod.project_slug, str(self.version_to_update_to), True)
                 if most_recent_version and not self.check_version_equality(mod.version, most_recent_version.version_number):
                     self.logger.debug(f"Newer version found for {most_recent_version.name} that needs force update")
                     force_update_version = most_recent_version
