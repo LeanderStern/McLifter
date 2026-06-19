@@ -9,7 +9,7 @@ class ButtonTypeEnum(StrEnum):
     YES = "Yes"
     NO = "No"
 
-class YesNoDialogScreen(ModalScreen):
+class YesNoDialog(ModalScreen):
     CSS_PATH = "style.tcss"
 
     _dialog_prompt: str
@@ -25,11 +25,10 @@ class YesNoDialogScreen(ModalScreen):
         super().__init__()
 
     def compose(self) -> ComposeResult:
-        yield Grid(Label(self._dialog_prompt, id="question"),
-                   Button(self._yes_button_text, variant="success", id=ButtonTypeEnum.YES),
-                   Button(self._no_button_text, variant="error", id=ButtonTypeEnum.NO),
-                   id="dialog",
-        )
+        with Grid():
+            yield Label(self._dialog_prompt)
+            yield Button(self._yes_button_text, variant="success", id=ButtonTypeEnum.YES)
+            yield Button(self._no_button_text, variant="error", id=ButtonTypeEnum.NO)
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == ButtonTypeEnum.YES:

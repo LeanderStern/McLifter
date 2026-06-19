@@ -45,11 +45,23 @@ class FileManager(MCLBaseModel, ABC):
     @classmethod
     def get_source_paths_from_backups(cls) -> List[DirectoryPath] | None:
         if cls._BACKUP_ROOT_FOLDER.exists():
-            sourced_paths = []
+            source_paths = []
             for path in cls._BACKUP_ROOT_FOLDER.iterdir():
-                with open(path / cls._BACKUP_SOURCE_PATH_FILE_NAME) as file:
-                    sourced_paths.append(Path(file.read()))
-            return sourced_paths
+                source_file_path: Path = path / cls._BACKUP_SOURCE_PATH_FILE_NAME
+                if not source_file_path.exists():
+                    continue
+                with open(source_file_path) as file:
+                    string_from_file = file.read()
+
+                    if len(string_from_file) <= 0:
+                        raise TypeError(f"Source file {source_file_path} is empty.")
+                    path_from_file = Path(string_from_file)
+                    if not path_from_file.exists():
+                        raise TypeError(f"The path: {path_from_file} from {source_file_path} doesnt exist.")
+                    if not path_from_file.is_dir():
+                        raise TypeError(f"The path: {path_from_file} from {source_file_path} is not a directory.")
+                    source_paths.append(path_from_file)
+            return source_paths
         return None
 
     @classmethod
